@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { DemoUser } from '@/lib/demoUsers';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +11,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  signInWithDemoUser: (demoUser: DemoUser) => void;
+  isDemoMode: boolean;
+  demoUserRole?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,8 +22,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoUserRole, setDemoUserRole] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    // Check for demo mode in localStorage
+    const demoUser = localStorage.getItem('demoUser');
+    if (demoUser) {
+      const parsedDemoUser = JSON.parse(demoUser);
+      setUser({ email: parsedDemoUser.email, id: parsedDemoUser.id } as User);
+      setIsDemoMode(true);
+      setDemoUserRole(parsedDemoUser.role);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -59,7 +76,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear demo mode
+    localStorage.removeItem('demoUser');
+    setIsDemoMode(false);
+    setDemoUserRole(undefined);
+
+    // Sign out from Supabase
     await supabase.auth.signOut();
+
+    // Clear user state
+    setUser(null);
+    setSession(null);
   };
 
   const resetPassword = async (email: string) => {
@@ -67,6 +94,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
     return { error: error as Error | null };
+  };
+
+  const signInWithDemoUser = (demoUser: DemoUser) => {
+    // Store demo user in localStorage
+    localStorage.setItem('demoUser', JSON.stringify(demoUser));
+
+    // Set demo mode state
+    setIsDemoMode(true);
+    setDemoUserRole(demoUser.role);
+    setUser({ email: demoUser.email, id: demoUser.id } as User);
+    setSession(null);
   };
 
   return (
@@ -79,6 +117,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         resetPassword,
+        signInWithDemoUser,
+        isDemoMode,
+        demoUserRole,
       }}
     >
       {children}
