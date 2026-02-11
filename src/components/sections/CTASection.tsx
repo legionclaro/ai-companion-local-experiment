@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Leaf } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const CTASection = () => {
   return (
@@ -29,16 +30,21 @@ const CTASection = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="accent" size="xl">
-              Registrar mi Perfil
-              <ArrowRight className="w-5 h-5" />
+            <Button variant="accent" size="xl" asChild>
+              <Link to="/auth/register/biologist">
+                Registrar mi Perfil
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </Button>
-            <Button 
-              variant="glass" 
+            <Button
+              variant="glass"
               size="xl"
               className="bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20 hover:bg-primary-foreground/20"
+              asChild
             >
-              Soy una Institución
+              <Link to="/auth/register/institution">
+                Soy una Institución
+              </Link>
             </Button>
           </div>
 

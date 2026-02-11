@@ -1,37 +1,60 @@
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, CheckCircle, Briefcase, TrendingUp, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function AdminDashboard() {
-    // Mock statistics
+    const navigate = useNavigate();
+
+    // Fetch real statistics
+    const { data: counts } = useQuery({
+        queryKey: ["admin-stats"],
+        queryFn: async () => {
+            const [usersCount, projectsCount, blogCount] = await Promise.all([
+                supabase.from("biologist_profiles").select("*", { count: "exact", head: true }),
+                supabase.from("projects" as any).select("*", { count: "exact", head: true }),
+                supabase.from("blog_posts" as any).select("*", { count: "exact", head: true }),
+            ]);
+
+            return {
+                users: usersCount.count || 0,
+                projects: projectsCount.count || 0,
+                blogPosts: blogCount.count || 0,
+            };
+        },
+    });
+
+    // Mock statistics with real values where possible
     const stats = [
         {
             title: "Total Usuarios",
-            value: "234",
+            value: counts?.users.toString() || "...",
             icon: Users,
             color: "text-blue-500",
-            change: "+12 esta semana",
+            change: "Cargado de Supabase",
         },
         {
             title: "Verificaciones Pendientes",
-            value: "8",
+            value: "0",
             icon: AlertTriangle,
             color: "text-orange-500",
             change: "Requiere atención",
         },
         {
             title: "Proyectos Activos",
-            value: "45",
+            value: counts?.projects.toString() || "...",
             icon: Briefcase,
             color: "text-green-500",
-            change: "+5 este mes",
+            change: "Cargado de Supabase",
         },
         {
-            title: "Aplicaciones Totales",
-            value: "189",
+            title: "Blog Posts",
+            value: counts?.blogPosts.toString() || "...",
             icon: CheckCircle,
             color: "text-purple-500",
-            change: "+23 esta semana",
+            change: "Cargado de Supabase",
         },
     ];
 

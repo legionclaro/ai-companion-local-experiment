@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProjectCard from '@/components/cards/ProjectCard';
-import { projects } from '@/data/mockData';
 import { ProjectStatus } from '@/types';
 import { ArrowRight } from 'lucide-react';
+import { useProjects } from '@/hooks/useProjects';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
 
 const ProjectsSection = () => {
   const [selectedStatus, setSelectedStatus] = useState<ProjectStatus | null>(null);
+  const { data: projects = [], isLoading } = useProjects();
 
   const filteredProjects = selectedStatus
     ? projects.filter(p => p.status === selectedStatus)
@@ -25,7 +28,7 @@ const ProjectsSection = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge variant="project" className="mb-4">Oportunidades</Badge>
+          <Badge variant="outline" className="mb-4 bg-primary/5 text-primary border-primary/20">Oportunidades</Badge>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-foreground mb-4">
             Proyectos Activos
           </h2>
@@ -50,22 +53,30 @@ const ProjectsSection = () => {
 
         {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredProjects.map((project, index) => (
-            <div 
-              key={project.id} 
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <ProjectCard project={project} />
-            </div>
-          ))}
+          {isLoading ? (
+            Array(3).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-[400px] w-full rounded-2xl" />
+            ))
+          ) : (
+            filteredProjects.slice(0, 3).map((project, index) => (
+              <div
+                key={project.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProjectCard project={project} />
+              </div>
+            ))
+          )}
         </div>
 
         {/* CTA */}
         <div className="text-center">
-          <Button variant="hero" size="lg">
-            Ver Todos los Proyectos
-            <ArrowRight className="w-4 h-4" />
+          <Button variant="hero" size="lg" asChild className="group">
+            <Link to="/projects" className="flex items-center gap-2">
+              Ver Todos los Proyectos
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Button>
         </div>
       </div>

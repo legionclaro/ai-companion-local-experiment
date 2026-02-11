@@ -44,8 +44,14 @@ const Header = () => {
             <Link to="/biologists" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Biólogos
             </Link>
-            <Link to="/projects" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/projects" className="text-sm font-medium hover:text-primary transition-colors">
               Proyectos
+            </Link>
+            <Link to="/blog" className="text-sm font-medium hover:text-primary transition-colors">
+              Blog
+            </Link>
+            <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Precios
             </Link>
             <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Cómo Funciona
@@ -125,6 +131,9 @@ const Header = () => {
               <a href="#projects" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Proyectos
               </a>
+              <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Precios
+              </Link>
               <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Cómo Funciona
               </a>

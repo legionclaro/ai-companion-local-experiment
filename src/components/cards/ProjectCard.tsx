@@ -32,7 +32,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Badge variant={status.variant}>{status.label}</Badge>
-            <Badge variant="project">{typeLabels[project.type]}</Badge>
+            <Badge variant="project">{typeLabels[project.category]}</Badge>
           </div>
           <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
             {project.title}
@@ -61,7 +61,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       <div className="mb-4">
         <p className="text-xs font-medium text-muted-foreground mb-2">Perfiles Requeridos:</p>
         <div className="flex flex-wrap gap-1.5">
-          {project.profileRequired.map(specialty => (
+          {(project.profileRequired || []).map(specialty => (
             <Badge key={specialty} variant="specialty" className="text-[10px]">
               {specialtyLabels[specialty] || specialty}
             </Badge>
@@ -81,7 +81,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Users className="w-3.5 h-3.5" />
-          <span>{project.positions} posiciones</span>
+          <span>{project.vacancies} posiciones</span>
         </div>
         {project.deadline && (
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -99,15 +99,20 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       </div>
 
       {/* Action */}
-      <Button 
-        variant={project.status === 'abierto' ? 'hero' : 'outline'} 
+      <Button
+        variant={project.status === 'abierto' ? 'hero' : 'outline'}
         className="w-full"
         disabled={project.status === 'cerrado'}
+        asChild
       >
-        {project.status === 'abierto' ? 'Aplicar Ahora' : 'Ver Detalles'}
+        <Link to={`/projects/${project.id}`}>
+          {project.status === 'abierto' ? 'Aplicar Ahora' : 'Ver Detalles'}
+        </Link>
       </Button>
     </div>
   );
 };
+
+import { Link } from 'react-router-dom';
 
 export default ProjectCard;

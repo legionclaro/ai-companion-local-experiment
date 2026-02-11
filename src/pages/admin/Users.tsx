@@ -8,42 +8,34 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { biologists } from "@/data/mockData";
-import { Ban, CheckCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Ban, CheckCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminUsers() {
-    // Mock users (combining biologists with fake institutions/admins)
-    const users = [
-        ...biologists.slice(0, 5).map((bio, idx) => ({
-            id: bio.id,
-            name: bio.name,
-            email: `${bio.name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
-            role: "biologist",
-            status: idx % 3 === 0 ? "banned" : "active",
-            photo: bio.photo,
-            registeredAt: `2024-02-${10 + idx}`,
-        })),
-        {
-            id: 100,
-            name: "Ministerio de Medio Ambiente",
-            email: "contacto@medioambiente.gob.do",
-            role: "institution",
-            status: "active",
-            photo: "",
-            registeredAt: "2024-01-15",
+    // Fetch real users from Supabase
+    const { data: users, isLoading } = useQuery({
+        queryKey: ["admin-users"],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("biologist_profiles")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (error) throw error;
+            return data.map((profile: any) => ({
+                id: profile.id,
+                name: profile.name,
+                email: "Ver en Dashboard Autenticación", // Email is protected in auth.users
+                role: profile.experience_level ? "biologist" : "pending",
+                status: "active",
+                photo: profile.photo,
+                registeredAt: new Date(profile.created_at).toLocaleDateString(),
+            }));
         },
-        {
-            id: 101,
-            name: "Admin Principal",
-            email: "admin@biord.do",
-            role: "admin",
-            status: "active",
-            photo: "",
-            registeredAt: "2023-12-01",
-        },
-    ];
+    });
 
     const getRoleBadge = (role: string) => {
         switch (role) {
@@ -95,52 +87,61 @@ export default function AdminUsers() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {users.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                {user.photo ? (
-                                                    <AvatarImage src={user.photo} />
-                                                ) : null}
-                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                                    {user.name.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-sm">{user.name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm">{user.email}</TableCell>
-                                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                                    <TableCell>{getStatusBadge(user.status)}</TableCell>
-                                    <TableCell className="text-sm">{user.registeredAt}</TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            {user.status === "active" ? (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                    title="Suspender"
-                                                    onClick={() => alert(`Usuario ${user.name} suspendido (Simulado)`)}
-                                                >
-                                                    <Ban className="w-4 h-4" />
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                    title="Activar"
-                                                    onClick={() => alert(`Usuario ${user.name} activado (Simulado)`)}
-                                                >
-                                                    <CheckCircle className="w-4 h-4" />
-                                                </Button>
-                                            )}
-                                        </div>
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8">
+                                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+                                        <p className="text-xs text-muted-foreground mt-2">Cargando usuarios...</p>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                users?.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8">
+                                                    {user.photo ? (
+                                                        <AvatarImage src={user.photo} />
+                                                    ) : null}
+                                                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                                        {(user.name || "U").charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium text-sm">{user.name || "Sin nombre"}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-sm">{user.email}</TableCell>
+                                        <TableCell>{getRoleBadge(user.role)}</TableCell>
+                                        <TableCell>{getStatusBadge(user.status)}</TableCell>
+                                        <TableCell className="text-sm">{user.registeredAt}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                {user.status === "active" ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                        title="Suspender"
+                                                        onClick={() => alert(`Usuario ${user.name} suspendido (Simulado)`)}
+                                                    >
+                                                        <Ban className="w-4 h-4" />
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                                        title="Activar"
+                                                        onClick={() => alert(`Usuario ${user.name} activado (Simulado)`)}
+                                                    >
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

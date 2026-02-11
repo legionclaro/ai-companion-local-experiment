@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ApplicationStatus = Database["public"]["Enums"]["application_status"];
 
@@ -13,8 +14,8 @@ export const useProjectApplications = (projectId?: string) => {
                 .select(`
           *,
           biologist_profiles (
-            full_name,
-            photo_url,
+            name,
+            photo,
             title,
             experience_level
           )
@@ -38,9 +39,45 @@ export const useProjectApplications = (projectId?: string) => {
 };
 
 export const useMyApplications = () => {
+    const { isDemoMode } = useAuth();
     return useQuery({
-        queryKey: ["my_applications"],
+        queryKey: ["my_applications", isDemoMode],
         queryFn: async () => {
+            if (isDemoMode) {
+                // Return mock applications for demo mode
+                return [
+                    {
+                        id: "demo-app-1",
+                        project_id: "demo-proj-1",
+                        biologist_id: "demo-biologist",
+                        status: "pending",
+                        applied_at: "2024-02-15T10:00:00Z",
+                        projects: {
+                            title: "Inventario de Flora - Parque Nacional Jaragua",
+                            institution_id: "demo-inst-1",
+                            status: "Abierto",
+                            institutions: {
+                                name: "Ministerio de Medio Ambiente"
+                            }
+                        }
+                    },
+                    {
+                        id: "demo-app-2",
+                        project_id: "demo-proj-2",
+                        biologist_id: "demo-biologist",
+                        status: "accepted",
+                        applied_at: "2024-01-20T14:30:00Z",
+                        projects: {
+                            title: "Monitoreo de Aves playeras - Bahía de las Águilas",
+                            institution_id: "demo-inst-2",
+                            status: "Cerrado",
+                            institutions: {
+                                name: "Grupo Jaragua"
+                            }
+                        }
+                    }
+                ];
+            }
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("No authenticated user");
 
@@ -48,7 +85,7 @@ export const useMyApplications = () => {
             const { data: profile, error: profileError } = await supabase
                 .from("biologist_profiles")
                 .select("id")
-                .eq("user_id", user.id)
+                .eq("id", user.id)
                 .single();
 
             if (profileError) throw profileError;
@@ -90,7 +127,7 @@ export const useApplyToProject = () => {
             const { data: profile } = await supabase
                 .from("biologist_profiles")
                 .select("id")
-                .eq("user_id", user.id)
+                .eq("id", user.id)
                 .single();
 
             if (!profile) throw new Error("No profile found");

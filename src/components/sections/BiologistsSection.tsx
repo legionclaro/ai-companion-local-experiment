@@ -2,21 +2,25 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import BiologistCard from '@/components/cards/BiologistCard';
-import { biologists, specialtyLabels } from '@/data/mockData';
+import { specialtyLabels } from '@/data/mockData';
 import { Specialty } from '@/types';
 import { Filter, ArrowRight } from 'lucide-react';
+import { useBiologists } from '@/hooks/useBiologists';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from 'react-router-dom';
 
 const allSpecialties: Specialty[] = [
-  'botánica', 'zoología', 'herpetología', 'ornitología', 
-  'entomología', 'ecología', 'conservación', 'GIS', 
+  'botánica', 'zoología', 'herpetología', 'ornitología',
+  'entomología', 'ecología', 'conservación', 'GIS',
   'taxonomía', 'biología marina'
 ];
 
 const BiologistsSection = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<Specialty | null>(null);
+  const { data: biologists = [], isLoading } = useBiologists();
 
   const filteredBiologists = selectedSpecialty
-    ? biologists.filter(b => b.specialties.includes(selectedSpecialty))
+    ? biologists.filter(b => (b.specialties || []).includes(selectedSpecialty))
     : biologists;
 
   return (
@@ -24,7 +28,7 @@ const BiologistsSection = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge variant="specialty" className="mb-4">Directorio Profesional</Badge>
+          <Badge variant="outline" className="mb-4 bg-primary/5 text-primary border-primary/20">Directorio Profesional</Badge>
           <h2 className="text-3xl sm:text-4xl font-serif font-bold text-foreground mb-4">
             Biólogos Verificados
           </h2>
@@ -34,7 +38,7 @@ const BiologistsSection = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
           <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
           <Button
             variant={selectedSpecialty === null ? 'default' : 'ghost'}
@@ -51,29 +55,37 @@ const BiologistsSection = () => {
               onClick={() => setSelectedSpecialty(specialty)}
               className="shrink-0"
             >
-              {specialtyLabels[specialty]}
+              {specialtyLabels[specialty] || specialty}
             </Button>
           ))}
         </div>
 
         {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {filteredBiologists.slice(0, 6).map((biologist, index) => (
-            <div 
-              key={biologist.id} 
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <BiologistCard biologist={biologist} />
-            </div>
-          ))}
+          {isLoading ? (
+            Array(3).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-[400px] w-full rounded-2xl" />
+            ))
+          ) : (
+            filteredBiologists.slice(0, 3).map((biologist, index) => (
+              <div
+                key={biologist.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <BiologistCard biologist={biologist} />
+              </div>
+            ))
+          )}
         </div>
 
         {/* CTA */}
         <div className="text-center">
-          <Button variant="outline" size="lg">
-            Ver Todos los Biólogos
-            <ArrowRight className="w-4 h-4" />
+          <Button variant="outline" size="lg" asChild className="group">
+            <Link to="/biologists" className="flex items-center gap-2">
+              Ver Todos los Biólogos
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Button>
         </div>
       </div>

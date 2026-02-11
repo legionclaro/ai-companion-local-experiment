@@ -9,35 +9,14 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { projects } from "@/data/mockData";
-import { Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Eye, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useMyApplications } from "@/hooks/useProjectApplications";
+import PageTransition from "@/components/layout/PageTransition";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MyApplications() {
-    // Mock applications based on projects mock data
-    const myApplications = [
-        {
-            id: "app-1",
-            project: projects[0], // Inventario de Flora
-            status: "pending",
-            appliedAt: "2024-02-15",
-            lastUpdate: "2024-02-16",
-        },
-        {
-            id: "app-2",
-            project: projects[2], // Monitoreo de Aves
-            status: "accepted",
-            appliedAt: "2024-01-20",
-            lastUpdate: "2024-01-25",
-        },
-        {
-            id: "app-3",
-            project: projects[1], // Estudio de Impacto Ambiental
-            status: "rejected",
-            appliedAt: "2024-01-10",
-            lastUpdate: "2024-01-12",
-        },
-    ];
+    const { data: myApplications, isLoading } = useMyApplications();
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -64,58 +43,85 @@ export default function MyApplications() {
         }
     };
 
-    return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold font-serif mb-2">Mis Aplicaciones</h1>
-                <p className="text-muted-foreground">
-                    Gestiona el estado de tus postulaciones a proyectos.
-                </p>
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-64" />
+                    </CardHeader>
+                    <CardContent>
+                        <Skeleton className="h-64 w-full" />
+                    </CardContent>
+                </Card>
             </div>
+        );
+    }
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Historial de Aplicaciones</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Proyecto</TableHead>
-                                <TableHead>Institución</TableHead>
-                                <TableHead>Fecha Aplicación</TableHead>
-                                <TableHead>Estado</TableHead>
-                                <TableHead className="text-right">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {myApplications.map((app) => (
-                                <TableRow key={app.id}>
-                                    <TableCell className="font-medium">
-                                        <Link
-                                            to={`/projects/${app.project.id}`}
-                                            className="hover:underline hover:text-primary transition-colors"
-                                        >
-                                            {app.project.title}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>{app.project.institution}</TableCell>
-                                    <TableCell>{app.appliedAt}</TableCell>
-                                    <TableCell>{getStatusBadge(app.status)}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm" asChild>
-                                            <Link to={`/projects/${app.project.id}`}>
-                                                <Eye className="w-4 h-4 mr-2" />
-                                                Ver Proyecto
-                                            </Link>
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+    return (
+        <PageTransition>
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold font-serif mb-2">Mis Aplicaciones</h1>
+                    <p className="text-muted-foreground">
+                        Gestiona el estado de tus postulaciones a proyectos.
+                    </p>
+                </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Historial de Aplicaciones</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {myApplications && myApplications.length > 0 ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Proyecto</TableHead>
+                                        <TableHead>Institución</TableHead>
+                                        <TableHead>Fecha Aplicación</TableHead>
+                                        <TableHead>Estado</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {myApplications.map((app: any) => (
+                                        <TableRow key={app.id}>
+                                            <TableCell className="font-medium">
+                                                <Link
+                                                    to={`/projects/${app.project_id}`}
+                                                    className="hover:underline hover:text-primary transition-colors"
+                                                >
+                                                    {app.projects?.title}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{app.projects?.institutions?.name}</TableCell>
+                                            <TableCell>{new Date(app.applied_at).toLocaleDateString()}</TableCell>
+                                            <TableCell>{getStatusBadge(app.status)}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="sm" asChild>
+                                                    <Link to={`/projects/${app.project_id}`}>
+                                                        <Eye className="w-4 h-4 mr-2" />
+                                                        Ver Proyecto
+                                                    </Link>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <div className="text-center py-12">
+                                <p className="text-muted-foreground mb-4">No has aplicado a ningún proyecto todavía.</p>
+                                <Button asChild>
+                                    <Link to="/projects">Explorar Proyectos</Link>
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+        </PageTransition>
     );
 }

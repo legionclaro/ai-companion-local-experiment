@@ -1,33 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Project } from "@/types";
 
-export const useProjects = () => {
-    return useQuery<Project[]>({
-        queryKey: ["projects"],
+export const useBlogPosts = () => {
+    return useQuery({
+        queryKey: ["blog_posts"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("projects" as any)
+                .from("blog_posts" as any)
                 .select("*")
-                .order("created_at", { ascending: false });
+                .order("date", { ascending: false });
 
             if (error) {
                 throw error;
             }
 
-            return data as Project[];
+            return data;
         },
     });
 };
 
-export const useProject = (id: string) => {
+export const useBlogPost = (slug: string) => {
     return useQuery({
-        queryKey: ["project", id],
+        queryKey: ["blog_post", slug],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("projects" as any)
+                .from("blog_posts" as any)
                 .select("*")
-                .eq("id", id)
+                .eq("slug", slug)
                 .single();
 
             if (error) {
@@ -36,6 +35,6 @@ export const useProject = (id: string) => {
 
             return data;
         },
-        enabled: !!id,
+        enabled: !!slug,
     });
 };

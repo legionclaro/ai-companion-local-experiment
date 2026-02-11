@@ -9,7 +9,7 @@ interface BiologistCardProps {
 }
 
 const BiologistCard = ({ biologist }: BiologistCardProps) => {
-  const initials = biologist.name
+  const initials = (biologist.name || 'Anonymous')
     .split(' ')
     .map(n => n[0])
     .slice(0, 2)
@@ -46,19 +46,19 @@ const BiologistCard = ({ biologist }: BiologistCardProps) => {
         </div>
         <div className="flex items-center gap-1">
           <Briefcase className="w-3.5 h-3.5" />
-          {biologist.projectsCompleted} proyectos
+          {biologist.projects_completed} proyectos
         </div>
       </div>
 
       {/* Specialties */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {biologist.specialties.slice(0, 3).map(specialty => (
+        {(biologist.specialties || []).slice(0, 3).map(specialty => (
           <Badge key={specialty} variant="specialty">
             {specialtyLabels[specialty] || specialty}
           </Badge>
         ))}
-        {biologist.specialties.length > 3 && (
-          <Badge variant="secondary">+{biologist.specialties.length - 3}</Badge>
+        {(biologist.specialties || []).length > 3 && (
+          <Badge variant="secondary">+{(biologist.specialties || []).length - 3}</Badge>
         )}
       </div>
 
@@ -68,7 +68,7 @@ const BiologistCard = ({ biologist }: BiologistCardProps) => {
           {availabilityLabels[biologist.availability]}
         </Badge>
         <span className="text-xs text-muted-foreground">
-          {biologist.yearsExperience} años exp.
+          {biologist.years_experience} años exp.
         </span>
       </div>
 
@@ -77,13 +77,21 @@ const BiologistCard = ({ biologist }: BiologistCardProps) => {
         {biologist.bio}
       </p>
 
-      {/* Action */}
-      <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground">
-        <MessageCircle className="w-4 h-4" />
-        Contactar
-      </Button>
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" asChild>
+          <Link to={`/biologists/${biologist.id}`}>
+            Ver Perfil
+          </Link>
+        </Button>
+        <Button variant="outline" size="icon" className="group-hover:bg-primary group-hover:text-primary-foreground">
+          <MessageCircle className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 };
+
+import { Link } from 'react-router-dom';
 
 export default BiologistCard;

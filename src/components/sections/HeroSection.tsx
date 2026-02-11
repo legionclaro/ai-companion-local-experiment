@@ -2,13 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, CheckCircle2, Users, Briefcase, Building2 } from 'lucide-react';
 import { stats } from '@/data/mockData';
+import { Link } from 'react-router-dom';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBg})` }}
       >
@@ -40,12 +41,16 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <Button variant="hero" size="xl">
-              Explorar Proyectos
-              <ArrowRight className="w-5 h-5" />
+            <Button variant="hero" size="xl" asChild>
+              <Link to="/projects">
+                Explorar Proyectos
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </Button>
-            <Button variant="glass" size="xl">
-              Soy Biólogo
+            <Button variant="glass" size="xl" asChild>
+              <Link to="/auth/register/biologist">
+                Soy Biólogo
+              </Link>
             </Button>
           </div>
 

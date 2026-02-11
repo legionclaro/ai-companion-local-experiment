@@ -1,8 +1,19 @@
-import { useParams, Link } from "react-router-dom";
-import { projects, specialtyLabels } from "@/data/mockData";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+    Calendar,
+    MapPin,
+    Clock,
+    Users,
+    Tag,
+    ArrowLeft,
+    Briefcase,
+    Globe,
+    FileText,
+    CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Users, Briefcase, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import {
@@ -13,23 +24,26 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import PageTransition from "@/components/layout/PageTransition";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useProject } from "@/hooks/useProjects";
+import { Skeleton } from "@/components/ui/skeleton";
+import SEO from "@/components/common/SEO";
 
 export default function ProjectDetail() {
-    const { id } = useParams<{ id: string }>();
-    const project = projects.find((p) => p.id === id);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { data: project, isLoading } = useProject(id || "");
 
-    if (!project) {
+    if (!isLoading && !project) {
         return (
-            <div className="min-h-screen flex flex-col bg-background">
+            <div className="min-h-screen flex flex-col bg-background pt-16">
                 <Navbar />
-                <main className="flex-grow container mx-auto px-4 py-8 mt-16 flex items-center justify-center">
+                <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold mb-4">Proyecto no encontrado</h2>
-                        <Button asChild>
-                            <Link to="/projects">Volver al banco de proyectos</Link>
-                        </Button>
+                        <h2 className="text-2xl font-bold mb-4 text-foreground">Proyecto no encontrado</h2>
+                        <Button onClick={() => navigate("/projects")}>Volver al banco de proyectos</Button>
                     </div>
                 </main>
                 <Footer />
@@ -37,169 +51,155 @@ export default function ProjectDetail() {
         );
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "abierto":
-                return "bg-emerald-100 text-emerald-800 border-emerald-200";
-            case "en_curso":
-                return "bg-blue-100 text-blue-800 border-blue-200";
-            case "cerrado":
-                return "bg-gray-100 text-gray-800 border-gray-200";
-            default:
-                return "bg-gray-100 text-gray-800";
-        }
-    };
-
-    return (
-        <div className="min-h-screen flex flex-col bg-background">
-            <Navbar />
-
-            <main className="flex-grow container mx-auto px-4 py-8 mt-16">
-                <Button variant="ghost" className="mb-6 pl-0 hover:pl-2 transition-all" asChild>
-                    <Link to="/projects">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Volver a proyectos
-                    </Link>
-                </Button>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                <Badge className={`${getStatusColor(project.status)}`}>
-                                    {project.status.replace("_", " ").toUpperCase()}
-                                </Badge>
-                                <Badge variant="outline" className="uppercase">
-                                    {project.type.replace("_", " ")}
-                                </Badge>
-                            </div>
-
-                            <h1 className="text-3xl font-bold font-serif mb-4 text-foreground">
-                                {project.title}
-                            </h1>
-
-                            <div className="flex items-center text-lg text-primary font-medium mb-6">
-                                <Briefcase className="w-5 h-5 mr-2" />
-                                {project.institution}
-                            </div>
-
-                            <div className="prose max-w-none text-muted-foreground">
-                                <p className="text-lg leading-relaxed">{project.description}</p>
-                            </div>
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col pt-16">
+                <Navbar />
+                <div className="container mx-auto px-4 py-12 space-y-12 flex-grow">
+                    <Skeleton className="h-10 w-48" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        <div className="lg:col-span-2 space-y-8">
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-[300px] w-full" />
                         </div>
-
-                        <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
-                            <h2 className="text-xl font-bold font-serif mb-6">Requisitos</h2>
-
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="font-semibold mb-3">Perfiles Requeridos</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {project.profileRequired.map((spec) => (
-                                            <Badge key={spec} variant="secondary" className="text-base px-4 py-1">
-                                                {specialtyLabels[spec]}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="font-semibold mb-3">Roles a Desempeñar</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {project.rolesNeeded.map((role) => (
-                                            <Badge key={role} variant="outline" className="text-base px-4 py-1 capitalize">
-                                                {role}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-card rounded-xl p-6 border border-border shadow-sm sticky top-24">
-                            <h3 className="font-bold text-lg mb-6 border-b border-border pb-2">
-                                Detalles del Proyecto
-                            </h3>
-
-                            <div className="space-y-5 mb-8">
-                                <div className="flex items-center">
-                                    <MapPin className="w-5 h-5 mr-3 text-primary" />
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">Ubicación</p>
-                                        <p className="text-sm text-muted-foreground">{project.location}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <Calendar className="w-5 h-5 mr-3 text-primary" />
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">Duración</p>
-                                        <p className="text-sm text-muted-foreground">{project.duration}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <Users className="w-5 h-5 mr-3 text-primary" />
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">Vacantes</p>
-                                        <p className="text-sm text-muted-foreground">{project.positions} disponibles</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center">
-                                    <div className={`w-3 h-3 rounded-full mr-4 ml-1 ${project.fundingConfirmed ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">Financiamiento</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {project.fundingConfirmed ? 'Confirmado' : 'Pendiente'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {project.deadline && (
-                                    <div className="bg-muted/50 p-3 rounded-md text-sm text-center">
-                                        <span className="font-semibold">Fecha límite:</span> {project.deadline}
-                                    </div>
-                                )}
-                            </div>
-
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button className="w-full text-lg py-6" size="lg">
-                                        Aplicar al Proyecto
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Aplicar a {project.title}</DialogTitle>
-                                        <DialogDescription>
-                                            Envía tu perfil para este proyecto. La institución revisará tu solicitud.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="cover-letter">Carta de Presentación (Breve)</Label>
-                                            <Textarea
-                                                id="cover-letter"
-                                                placeholder="Explica brevemente por qué eres ideal para este proyecto..."
-                                                className="h-32"
-                                            />
-                                        </div>
-                                    </div>
-                                    <Button className="w-full" onClick={() => alert("¡Solicitud enviada (Simulación)!")}>
-                                        Confirmar Aplicación
-                                    </Button>
-                                </DialogContent>
-                            </Dialog>
+                        <div className="lg:col-span-1 space-y-6">
+                            <Skeleton className="h-[400px] w-full" />
                         </div>
                     </div>
                 </div>
-            </main>
+                <Footer />
+            </div>
+        );
+    }
 
+    return (
+        <div className="min-h-screen bg-background flex flex-col pt-16">
+            <SEO title={project.title || "Proyecto"} description={project.description || ""} />
+            <Navbar />
+            <PageTransition
+                title={project.title || "Proyecto"}
+                description={`Proyecto de biodiversidad en BioRD: ${(project.description || "").substring(0, 150)}...`}
+            >
+                <main className="flex-grow container mx-auto px-4 py-12">
+                    <Button variant="ghost" className="mb-6 pl-0 hover:pl-2 transition-all" asChild>
+                        <Link to="/projects">
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Explorar Proyectos
+                        </Link>
+                    </Button>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        {/* Main Content */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <div>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Badge variant="secondary" className="px-3 py-1 text-sm font-medium">
+                                        {project.category}
+                                    </Badge>
+                                    <span className="text-sm text-muted-foreground flex items-center">
+                                        <Clock className="w-4 h-4 mr-1" />
+                                        Publicado recientemente
+                                    </span>
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-bold font-serif mb-6 leading-tight">
+                                    {project.title}
+                                </h1>
+                            </div>
+
+                            <div className="bg-card rounded-2xl p-8 border border-border shadow-sm">
+                                <h2 className="text-2xl font-bold font-serif mb-6">Descripción del Proyecto</h2>
+                                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-lg">
+                                    {project.description}
+                                </p>
+                            </div>
+
+                            <div className="bg-card rounded-2xl p-8 border border-border shadow-sm">
+                                <h2 className="text-2xl font-bold font-serif mb-6">Categoría</h2>
+                                <div className="flex flex-wrap gap-3">
+                                    <Badge variant="outline" className="px-4 py-2 text-base font-medium uppercase tracking-wider">
+                                        {project.category}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sidebar */}
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-card rounded-2xl p-8 border border-border shadow-sm sticky top-24">
+                                <div className="space-y-6 mb-8">
+                                    <div className="flex items-center justify-between font-serif">
+                                        <span className="text-muted-foreground">Institución</span>
+                                        <span className="font-bold">{project.institution}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground flex items-center">
+                                            <MapPin className="w-4 h-4 mr-2" /> Ubicación
+                                        </span>
+                                        <span className="font-medium">{project.location}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground flex items-center">
+                                            <Users className="w-4 h-4 mr-2" /> Vacantes
+                                        </span>
+                                        <span className="font-medium">{project.vacancies} disponibles</span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-muted-foreground">Progreso Presupuestario</span>
+                                            <span className="font-medium">{project.budget_progress}%</span>
+                                        </div>
+                                        <Progress value={project.budget_progress} className="h-2" />
+                                    </div>
+                                </div>
+
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button className="w-full text-lg h-14 shadow-md hover:shadow-lg transition-all" size="lg">
+                                            Aplicar al Proyecto
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[525px]">
+                                        <DialogHeader>
+                                            <DialogTitle className="text-2xl font-serif">Enviar Aplicación</DialogTitle>
+                                            <DialogDescription>
+                                                Cuéntale a {project.institution} por qué eres el candidato ideal para este proyecto.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="message">Carta de Motivación</Label>
+                                                <Textarea
+                                                    id="message"
+                                                    placeholder="Describe tu experiencia relevante..."
+                                                    className="h-32"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                                                <CheckCircle2 className="w-5 h-5 text-primary" />
+                                                <span className="text-sm">Se enviará tu perfil verificado automáticamente.</span>
+                                            </div>
+                                        </div>
+                                        <Button type="submit" className="w-full" onClick={() => alert("Aplicación enviada con éxito (Supabase Demo)")}>
+                                            Confirmar Aplicación
+                                        </Button>
+                                    </DialogContent>
+                                </Dialog>
+
+                                <div className="mt-8 pt-8 border-t border-border space-y-4">
+                                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                        <Globe className="w-4 h-4" />
+                                        <span>Modalidad: {project.modality}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                        <FileText className="w-4 h-4" />
+                                        <span>Estado: {project.status}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </PageTransition>
             <Footer />
         </div>
     );

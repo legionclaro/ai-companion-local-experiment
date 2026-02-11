@@ -42,7 +42,8 @@ export function InstitutionRegistration() {
     setIsLoading(true);
 
     try {
-      // 1. Create auth user for admin
+      // 1. Create auth user with institution data in metadata
+      // The DB trigger handle_new_user() will catch this and create the record
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.adminEmail,
         password: data.adminPassword,
@@ -50,6 +51,9 @@ export function InstitutionRegistration() {
           emailRedirectTo: window.location.origin,
           data: {
             institution_admin: true,
+            institution_name: data.name,
+            institution_description: data.description || null,
+            institution_website: data.website || null,
           },
         },
       });
@@ -57,24 +61,8 @@ export function InstitutionRegistration() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('No se pudo crear el usuario');
 
-      // 2. Create institution
-      const { error: institutionError } = await supabase
-        .from('institutions')
-        .insert({
-          name: data.name,
-          description: data.description || null,
-          website: data.website || null,
-          created_by: authData.user.id,
-        });
+      // The institution is now created automatically by the Postgres trigger!
 
-      if (institutionError) {
-        console.error('Institution creation error:', institutionError);
-        toast({
-          variant: 'destructive',
-          title: 'Error parcial',
-          description: 'Tu cuenta fue creada pero hubo un problema registrando la institución.',
-        });
-      }
 
       setRegistrationComplete(true);
       toast({
@@ -106,7 +94,7 @@ export function InstitutionRegistration() {
           <span className="font-medium text-foreground">{form.getValues('adminEmail')}</span>
         </p>
         <p className="text-sm text-muted-foreground">
-          Una vez confirmes tu correo, podrás acceder al panel de tu institución 
+          Una vez confirmes tu correo, podrás acceder al panel de tu institución
           y comenzar a publicar proyectos.
         </p>
         <Button variant="outline" asChild className="mt-4">
@@ -123,7 +111,7 @@ export function InstitutionRegistration() {
           <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
             Datos de la institución
           </h3>
-          
+
           <FormField
             control={form.control}
             name="name"

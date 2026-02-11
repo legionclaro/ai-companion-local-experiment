@@ -10,6 +10,8 @@ import {
     Menu,
     X,
     Building2,
+    CreditCard,
+    LineChart,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -31,9 +33,19 @@ export default function InstitutionLayout() {
             icon: Briefcase,
         },
         {
+            label: "Análisis",
+            path: "/institution/analytics",
+            icon: LineChart,
+        },
+        {
             label: "Aplicaciones",
             path: "/institution/applications",
             icon: Users,
+        },
+        {
+            label: "Facturación",
+            path: "/institution/billing",
+            icon: CreditCard,
         },
         {
             label: "Configuración",

@@ -1,5 +1,7 @@
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Search, Handshake, Star } from 'lucide-react';
+import { UserPlus, Search, Handshake, Star, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const steps = [
   {
@@ -42,7 +44,7 @@ const HowItWorksSection = () => {
         {/* Steps */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div 
+            <div
               key={step.title}
               className="relative animate-fade-in"
               style={{ animationDelay: `${index * 0.15}s` }}
@@ -51,25 +53,35 @@ const HowItWorksSection = () => {
               {index < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-12 left-[60%] w-full h-px bg-border" />
               )}
-              
+
               {/* Step Card */}
               <div className="relative bg-card rounded-2xl border border-border/50 p-6 text-center shadow-sm hover:shadow-card transition-shadow">
                 {/* Number */}
                 <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
                   {index + 1}
                 </div>
-                
+
                 {/* Icon */}
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto mb-4 flex items-center justify-center">
                   <step.icon className="w-8 h-8 text-primary" />
                 </div>
-                
+
                 {/* Content */}
                 <h3 className="font-semibold text-foreground mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground">{step.description}</p>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          <Button size="lg" asChild>
+            <Link to="/auth/register/biologist">
+              Comenzar Ahora
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

@@ -11,6 +11,7 @@ import {
     Leaf,
     Bell,
     MessageSquare,
+    CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,11 @@ export default function DashboardLayout() {
             label: "Mi Perfil",
             path: "/dashboard/profile",
             icon: User,
+        },
+        {
+            label: "Facturación",
+            path: "/dashboard/billing",
+            icon: CreditCard,
         },
     ];
 

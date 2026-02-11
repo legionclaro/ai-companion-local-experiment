@@ -1,4 +1,4 @@
-export type Specialty = 
+export type Specialty =
   | 'botánica'
   | 'zoología'
   | 'herpetología'
@@ -18,7 +18,7 @@ export type ExperienceLevel = 'junior' | 'intermedio' | 'senior' | 'experto';
 
 export type ProjectStatus = 'abierto' | 'en_curso' | 'cerrado';
 
-export type ProjectType = 
+export type ProjectType =
   | 'conservación'
   | 'impacto_ambiental'
   | 'inventario'
@@ -34,13 +34,14 @@ export interface Biologist {
   roles: Role[];
   availability: Availability;
   languages: string[];
-  experienceLevel: ExperienceLevel;
-  yearsExperience: number;
+  experience_level: ExperienceLevel;
+  years_experience: number;
   verified: boolean;
   location: string;
-  projectsCompleted: number;
+  projects_completed: number;
   bio: string;
   institution?: string;
+  premium?: boolean;
 }
 
 export interface Project {
@@ -48,7 +49,7 @@ export interface Project {
   title: string;
   institution: string;
   institutionLogo?: string;
-  type: ProjectType;
+  category: ProjectType;
   status: ProjectStatus;
   description: string;
   profileRequired: Specialty[];
@@ -58,7 +59,8 @@ export interface Project {
   location: string;
   fundingConfirmed: boolean;
   deadline?: string;
-  positions: number;
+  vacancies: number;
+  budget_progress: number;
 }
 
 export interface Stats {

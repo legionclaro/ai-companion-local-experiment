@@ -46,12 +46,13 @@ export function BiologistRegistration() {
 
     try {
       const { basicData, professionalProfile } = formData;
-      
+
       if (!basicData || !professionalProfile) {
         throw new Error('Datos incompletos');
       }
 
-      // 1. Create auth user
+      // 1. Create auth user with ALL profile data in metadata
+      // The DB trigger handle_new_user() will catch this and create the public.profiles record
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: basicData.email,
         password: basicData.password,
@@ -59,6 +60,15 @@ export function BiologistRegistration() {
           emailRedirectTo: window.location.origin,
           data: {
             full_name: basicData.fullName,
+            title: professionalProfile.title,
+            specialties: professionalProfile.specialties,
+            roles: professionalProfile.roles,
+            experience_level: professionalProfile.experienceLevel,
+            years_experience: professionalProfile.yearsExperience,
+            languages: professionalProfile.languages,
+            availability: data.availability,
+            location: data.location,
+            bio: data.bio || null,
           },
         },
       });
@@ -66,33 +76,9 @@ export function BiologistRegistration() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('No se pudo crear el usuario');
 
-      // 2. Create biologist profile
-      const { error: profileError } = await supabase
-        .from('biologist_profiles')
-        .insert({
-          user_id: authData.user.id,
-          full_name: basicData.fullName,
-          title: professionalProfile.title,
-          specialties: professionalProfile.specialties as any,
-          roles: professionalProfile.roles as any,
-          experience_level: professionalProfile.experienceLevel as any,
-          years_experience: professionalProfile.yearsExperience,
-          languages: professionalProfile.languages,
-          availability: data.availability as any,
-          location: data.location,
-          bio: data.bio || null,
-          verification_status: 'pending',
-        });
+      // The profile is now created automatically by the Postgres trigger!
+      // No manual insert needed here anymore.
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw - user is created, profile can be completed later
-        toast({
-          variant: 'destructive',
-          title: 'Perfil parcialmente creado',
-          description: 'Tu cuenta fue creada pero hubo un problema guardando tu perfil. Podrás completarlo después.',
-        });
-      }
 
       setRegistrationComplete(true);
       toast({
@@ -124,7 +110,7 @@ export function BiologistRegistration() {
           <span className="font-medium text-foreground">{formData.basicData?.email}</span>
         </p>
         <p className="text-sm text-muted-foreground">
-          Una vez confirmes tu correo, tu perfil entrará en proceso de verificación 
+          Una vez confirmes tu correo, tu perfil entrará en proceso de verificación
           por nuestro comité de curadores.
         </p>
         <Button variant="outline" asChild className="mt-4">

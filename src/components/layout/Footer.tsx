@@ -24,10 +24,11 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Plataforma</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#biologists" className="hover:text-foreground transition-colors">Directorio</a></li>
-              <li><a href="#projects" className="hover:text-foreground transition-colors">Proyectos</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Para Instituciones</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Verificación</a></li>
+              <li><a href="/biologists" className="hover:text-foreground transition-colors">Directorio</a></li>
+              <li><a href="/projects" className="hover:text-foreground transition-colors">Proyectos</a></li>
+              <li><a href="/blog" className="hover:text-foreground transition-colors">Blog</a></li>
+              <li><a href="/auth/register/institution" className="hover:text-foreground transition-colors">Para Instituciones</a></li>
+              <li><a href="/auth/register/biologist" className="hover:text-foreground transition-colors">Verificación</a></li>
             </ul>
           </div>
 
@@ -35,10 +36,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Recursos</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Centro de Ayuda</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Guía de Uso</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Contacto</a></li>
+              <li><a href="/help" className="hover:text-foreground transition-colors">Centro de Ayuda</a></li>
+              <li><a href="/pricing" className="hover:text-foreground transition-colors">Precios</a></li>
+              <li><a href="/search" className="hover:text-foreground transition-colors">Búsqueda Avanzada</a></li>
+              <li><a href="/contact" className="hover:text-foreground transition-colors">Contacto</a></li>
             </ul>
           </div>
 
@@ -46,9 +47,8 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors">Términos de Uso</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Privacidad</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors">Cookies</a></li>
+              <li><a href="/terms" className="hover:text-foreground transition-colors">Términos de Uso</a></li>
+              <li><a href="/privacy" className="hover:text-foreground transition-colors">Privacidad</a></li>
             </ul>
           </div>
         </div>

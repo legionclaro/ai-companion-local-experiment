@@ -11,6 +11,7 @@ import {
     Menu,
     X,
     Shield,
+    FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,6 +46,11 @@ export default function AdminLayout() {
             label: "Usuarios",
             path: "/admin/users",
             icon: Users,
+        },
+        {
+            label: "Blog",
+            path: "/admin/blog",
+            icon: FileText,
         },
     ];
 

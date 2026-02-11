@@ -1,147 +1,185 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { projects } from "@/data/mockData";
-import { FileText, Eye, CheckCircle, Clock } from "lucide-react";
+import { FileText, Eye, CheckCircle, Clock, UserCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PageTransition from "@/components/layout/PageTransition";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBiologist } from "@/hooks/useBiologists";
+import { useMyApplications } from "@/hooks/useProjectApplications";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardOverview() {
-    // Mock stats
+    const { user } = useAuth();
+    const { data: profile, isLoading: isProfileLoading } = useBiologist(user?.id || "");
+    const { data: applications, isLoading: isAppsLoading } = useMyApplications();
+
+    const isLoading = isProfileLoading || isAppsLoading;
+
+    // Derived stats
     const stats = [
         {
             title: "Aplicaciones Enviadas",
-            value: "5",
+            value: applications?.length || 0,
             icon: FileText,
             color: "text-blue-500",
-            change: "+2 este mes",
+            change: "Total histórico",
         },
         {
             title: "Vistas del Perfil",
-            value: "134",
+            value: "0", // Simulated/Future feat
             icon: Eye,
             color: "text-purple-500",
-            change: "+12% vs mes anterior",
+            change: "Métrica pronto",
         },
         {
             title: "Proyectos Asignados",
-            value: "1",
+            value: applications?.filter(a => a.status === 'accepted').length || 0,
             icon: CheckCircle,
             color: "text-green-500",
-            change: "Activo ahora",
+            change: "Confirmados",
         },
     ];
 
-    const recentActivity = [
-        {
-            id: 1,
-            type: "application_update",
-            project: "Inventario de Flora",
-            status: "Entrevista Programada",
-            date: "Hace 2 horas",
-            icon: Clock,
-        },
-        {
-            id: 2,
-            type: "new_match",
-            project: "Monitoreo de Aves",
-            status: "Nuevo proyecto coincide con tu perfil",
-            date: "Hace 1 día",
-            icon: FileText,
-        },
-        {
-            id: 3,
-            type: "profile_view",
-            institution: "The Nature Conservancy",
-            status: "Vio tu perfil",
-            date: "Hace 2 días",
-            icon: Eye,
-        },
-    ];
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                <Skeleton className="h-10 w-64" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-32" />
+                    <Skeleton className="h-32" />
+                    <Skeleton className="h-32" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Skeleton className="h-64" />
+                    <Skeleton className="h-64" />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold font-serif mb-2">Panel del Biólogo</h1>
-                <p className="text-muted-foreground">
-                    Bienvenido de nuevo. Aquí está el resumen de tu actividad.
-                </p>
-            </div>
+        <PageTransition>
+            <div className="space-y-8">
+                <div>
+                    <h1 className="text-3xl font-bold font-serif mb-2">Panel del Biólogo</h1>
+                    <p className="text-muted-foreground">
+                        Bienvenido de nuevo, {profile?.name || user?.email}. Aquí está el resumen de tu actividad.
+                    </p>
+                </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {stats.map((stat, index) => (
-                    <Card key={index}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                {stat.title}
-                            </CardTitle>
-                            <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                {/* Verification Banner - Only if not verified */}
+                {!profile?.verified && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                                <UserCheck className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg">Verifica tu Perfil Profesional</h3>
+                                <p className="text-muted-foreground text-sm">
+                                    Obtén la insignia dorada y accede a proyectos exclusivos para expertos certificados.
+                                </p>
+                            </div>
+                        </div>
+                        <Button asChild>
+                            <a href="/dashboard/verify">Comenzar Verificación</a>
+                        </Button>
+                    </div>
+                )}
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {stats.map((stat, index) => (
+                        <Card key={index}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    {stat.title}
+                                </CardTitle>
+                                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stat.value}</div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {stat.change}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Two Column Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* My Applications */}
+                    <Card className="col-span-1">
+                        <CardHeader>
+                            <CardTitle>Mis Aplicaciones</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {stat.change}
-                            </p>
+                            <div className="space-y-4">
+                                {applications && applications.length > 0 ? (
+                                    applications.slice(0, 5).map((app: any) => (
+                                        <div
+                                            key={app.id}
+                                            className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="space-y-1">
+                                                <p className="font-medium text-sm">{app.projects?.title}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Aplicado: {new Date(app.applied_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <div className={`text-xs font-medium px-2 py-1 rounded ${app.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
+                                                app.status === 'Aceptado' ? 'bg-green-100 text-green-700' :
+                                                    'bg-red-100 text-red-700'
+                                                }`}>
+                                                {app.status}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No has aplicado a ningún proyecto aún.
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
-                ))}
-            </div>
 
-            {/* Two Column Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Recommended Projects */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle>Proyectos Recomendados</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {projects.slice(0, 3).map((project) => (
-                                <div
-                                    key={project.id}
-                                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                                >
-                                    <div className="space-y-1">
-                                        <p className="font-medium text-sm">{project.title}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {project.institution}
-                                        </p>
+                    {/* Recent Activity */}
+                    <Card className="col-span-1">
+                        <CardHeader>
+                            <CardTitle>Actividad Reciente</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-6">
+                                {applications && applications.length > 0 ? (
+                                    applications.slice(0, 3).map((app: any) => (
+                                        <div key={app.id} className="flex gap-4">
+                                            <div className="mt-1 bg-muted p-2 rounded-full h-8 w-8 flex items-center justify-center">
+                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-medium leading-none">
+                                                    Aplicación enviada
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Para el proyecto: {app.projects?.title}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground pt-1">
+                                                    {new Date(app.applied_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No hay actividad reciente.
                                     </div>
-                                    <div className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-1 rounded">
-                                        Match 95%
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Recent Activity */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle>Actividad Reciente</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-6">
-                            {recentActivity.map((activity) => (
-                                <div key={activity.id} className="flex gap-4">
-                                    <div className="mt-1 bg-muted p-2 rounded-full h-8 w-8 flex items-center justify-center">
-                                        <activity.icon className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium leading-none">
-                                            {activity.project || activity.institution}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {activity.status}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground pt-1">
-                                            {activity.date}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
+        </PageTransition>
     );
 }
