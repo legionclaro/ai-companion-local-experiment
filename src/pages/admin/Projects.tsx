@@ -57,9 +57,9 @@ export default function AdminProjects() {
                                 <TableRow key={project.id}>
                                     <TableCell className="font-medium">{project.title}</TableCell>
                                     <TableCell className="text-sm">{project.institution}</TableCell>
-                                    <TableCell className="text-sm">{project.type}</TableCell>
+                                    <TableCell className="text-sm">{project.category}</TableCell>
                                     <TableCell>{getStatusBadge(project.status)}</TableCell>
-                                    <TableCell className="text-sm">{project.positions}</TableCell>
+                                    <TableCell className="text-sm">{project.vacancies}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button variant="ghost" size="icon" title="Ver" asChild>

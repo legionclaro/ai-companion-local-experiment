@@ -6,7 +6,7 @@ export const useBlogPosts = () => {
         queryKey: ["blog_posts"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("blog_posts" as any)
+                .from("blog_posts")
                 .select("*")
                 .order("date", { ascending: false });
 
@@ -14,7 +14,10 @@ export const useBlogPosts = () => {
                 throw error;
             }
 
-            return data;
+            return (data as any[]).map(post => ({
+                ...post,
+                readTime: post.read_time
+            }));
         },
     });
 };
@@ -24,7 +27,7 @@ export const useBlogPost = (slug: string) => {
         queryKey: ["blog_post", slug],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("blog_posts" as any)
+                .from("blog_posts")
                 .select("*")
                 .eq("slug", slug)
                 .single();
@@ -33,7 +36,10 @@ export const useBlogPost = (slug: string) => {
                 throw error;
             }
 
-            return data;
+            return {
+                ...data as any,
+                readTime: (data as any).read_time
+            };
         },
         enabled: !!slug,
     });

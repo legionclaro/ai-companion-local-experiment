@@ -165,6 +165,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          budget_progress: number
           created_at: string
           deadline: string | null
           description: string
@@ -174,15 +175,16 @@ export type Database = {
           institution_id: string
           location: string | null
           modality: Database["public"]["Enums"]["project_modality"]
-          positions: number
+          vacancies: number
           profile_required: Database["public"]["Enums"]["specialty"][]
           roles_needed: Database["public"]["Enums"]["biologist_role"][]
           status: Database["public"]["Enums"]["project_status"]
           title: string
-          type: Database["public"]["Enums"]["project_type"]
+          category: Database["public"]["Enums"]["project_type"]
           updated_at: string
         }
         Insert: {
+          budget_progress?: number
           created_at?: string
           deadline?: string | null
           description: string
@@ -192,15 +194,16 @@ export type Database = {
           institution_id: string
           location?: string | null
           modality?: Database["public"]["Enums"]["project_modality"]
-          positions?: number
+          vacancies?: number
           profile_required?: Database["public"]["Enums"]["specialty"][]
           roles_needed?: Database["public"]["Enums"]["biologist_role"][]
           status?: Database["public"]["Enums"]["project_status"]
           title: string
-          type: Database["public"]["Enums"]["project_type"]
+          category: Database["public"]["Enums"]["project_type"]
           updated_at?: string
         }
         Update: {
+          budget_progress?: number
           created_at?: string
           deadline?: string | null
           description?: string
@@ -210,12 +213,12 @@ export type Database = {
           institution_id?: string
           location?: string | null
           modality?: Database["public"]["Enums"]["project_modality"]
-          positions?: number
+          vacancies?: number
           profile_required?: Database["public"]["Enums"]["specialty"][]
           roles_needed?: Database["public"]["Enums"]["biologist_role"][]
           status?: Database["public"]["Enums"]["project_status"]
           title?: string
-          type?: Database["public"]["Enums"]["project_type"]
+          category?: Database["public"]["Enums"]["project_type"]
           updated_at?: string
         }
         Relationships: [
@@ -246,6 +249,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          id: string
+          title: string
+          content: string
+          excerpt: string | null
+          author: string
+          category: string
+          image: string | null
+          date: string
+          read_time: string | null
+          slug: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          content: string
+          excerpt?: string | null
+          author: string
+          category: string
+          image?: string | null
+          date?: string
+          read_time?: string | null
+          slug: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          content?: string
+          excerpt?: string | null
+          author?: string
+          category?: string
+          image?: string | null
+          date?: string
+          read_time?: string | null
+          slug?: string
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

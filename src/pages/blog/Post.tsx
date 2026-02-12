@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BlogPost() {
     const { slug } = useParams();
-    const { data: post, isLoading } = useBlogPost(slug || "");
+    const { data: post, isLoading } = useBlogPost(slug || "") as { data: any, isLoading: boolean };
 
     if (!isLoading && !post) {
         return <Navigate to="/404" replace />;

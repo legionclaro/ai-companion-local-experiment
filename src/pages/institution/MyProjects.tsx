@@ -70,12 +70,12 @@ export default function InstitutionProjects() {
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
                                             <span>{project.title}</span>
-                                            <span className="text-xs text-muted-foreground">{project.type}</span>
+                                            <span className="text-xs text-muted-foreground">{project.category}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>{getStatusBadge(project.status)}</TableCell>
                                     <TableCell>{project.deadline || "N/A"}</TableCell>
-                                    <TableCell>{project.positions}</TableCell>
+                                    <TableCell>{project.vacancies}</TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex justify-end gap-2">
                                             <Button variant="ghost" size="icon" asChild>

@@ -41,7 +41,7 @@ export interface Biologist {
   projects_completed: number;
   bio: string;
   institution?: string;
-  premium?: boolean;
+  is_premium?: boolean;
 }
 
 export interface Project {

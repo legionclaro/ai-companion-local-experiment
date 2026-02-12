@@ -7,7 +7,7 @@ export const useProjects = () => {
         queryKey: ["projects"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("projects" as any)
+                .from("projects")
                 .select("*")
                 .order("created_at", { ascending: false });
 
@@ -15,7 +15,23 @@ export const useProjects = () => {
                 throw error;
             }
 
-            return data as Project[];
+            return (data as any[]).map(row => ({
+                id: row.id,
+                title: row.title,
+                description: row.description,
+                institution: row.institution_id, // Use ID for now or map to name if possible
+                category: row.category,
+                status: row.status,
+                vacancies: row.vacancies,
+                budget_progress: row.budget_progress,
+                profileRequired: row.profile_required || [],
+                rolesNeeded: row.roles_needed || [],
+                duration: row.duration,
+                modality: row.modality,
+                location: row.location,
+                fundingConfirmed: row.funding_confirmed,
+                deadline: row.deadline,
+            })) as Project[];
         },
     });
 };
@@ -25,7 +41,7 @@ export const useProject = (id: string) => {
         queryKey: ["project", id],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("projects" as any)
+                .from("projects")
                 .select("*")
                 .eq("id", id)
                 .single();
@@ -34,7 +50,24 @@ export const useProject = (id: string) => {
                 throw error;
             }
 
-            return data;
+            const row = data as any;
+            return {
+                id: row.id,
+                title: row.title,
+                description: row.description,
+                institution: row.institution_id, // Use ID for now or map to name if possible
+                category: row.category,
+                status: row.status,
+                vacancies: row.vacancies,
+                budget_progress: row.budget_progress,
+                profileRequired: row.profile_required || [],
+                rolesNeeded: row.roles_needed || [],
+                duration: row.duration,
+                modality: row.modality,
+                location: row.location,
+                fundingConfirmed: row.funding_confirmed,
+                deadline: row.deadline,
+            } as Project;
         },
         enabled: !!id,
     });

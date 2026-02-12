@@ -34,7 +34,7 @@ import SEO from "@/components/common/SEO";
 export default function ProjectDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { data: project, isLoading } = useProject(id || "");
+    const { data: project, isLoading } = useProject(id || "") as { data: any, isLoading: boolean };
 
     if (!isLoading && !project) {
         return (

@@ -85,7 +85,7 @@ export default function BiologistProfile() {
                                     <h1 className="text-2xl font-bold font-serif mb-1">{biologist.name}</h1>
                                     <p className="text-primary font-medium mb-3">{biologist.title}</p>
 
-                                    {biologist.premium && (
+                                    {biologist.is_premium && (
                                         <PremiumBadge className="mb-4" />
                                     )}
 
