@@ -13,7 +13,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signInWithDemoUser: (demoUser: DemoUser) => void;
   isDemoMode: boolean;
-  demoUserRole?: string;
+  role: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [demoUserRole, setDemoUserRole] = useState<string | undefined>(undefined);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Check for demo mode in localStorage
@@ -32,24 +32,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const parsedDemoUser = JSON.parse(demoUser);
       setUser({ email: parsedDemoUser.email, id: parsedDemoUser.id } as User);
       setIsDemoMode(true);
-      setDemoUserRole(parsedDemoUser.role);
+      setRole(parsedDemoUser.role);
       setLoading(false);
       return;
     }
 
     // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+
+        if (session?.user) {
+          const { data } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single();
+          setRole(data?.role ?? 'user');
+        } else {
+          setRole(null);
+        }
+
         setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+
+      if (session?.user) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+        setRole(data?.role ?? 'user');
+      }
+
       setLoading(false);
     });
 
@@ -79,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear demo mode
     localStorage.removeItem('demoUser');
     setIsDemoMode(false);
-    setDemoUserRole(undefined);
+    setRole(null);
 
     // Sign out from Supabase
     await supabase.auth.signOut();
@@ -102,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Set demo mode state
     setIsDemoMode(true);
-    setDemoUserRole(demoUser.role);
+    setRole(demoUser.role);
     setUser({ email: demoUser.email, id: demoUser.id } as User);
     setSession(null);
   };
@@ -119,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPassword,
         signInWithDemoUser,
         isDemoMode,
-        demoUserRole,
+        role,
       }}
     >
       {children}

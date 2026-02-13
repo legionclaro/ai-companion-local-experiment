@@ -1,11 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, CheckCircle2, Users, Briefcase, Building2 } from 'lucide-react';
-import { stats } from '@/data/mockData';
+import { ArrowRight, CheckCircle2, Users, Briefcase, Building2, Loader2 } from 'lucide-react';
+import { stats as fallbackStats } from '@/data/mockData';
 import { Link } from 'react-router-dom';
 import heroBg from '@/assets/hero-bg.jpg';
+import { useStats } from '@/hooks/useStats';
 
 const HeroSection = () => {
+  const { data: stats, isLoading } = useStats();
+
+  // Use real stats if available, otherwise use fallback from mockData
+  const currentStats = stats || fallbackStats;
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -56,10 +62,10 @@ const HeroSection = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <StatCard icon={Users} value={stats.biologists} label="Biólogos" />
-            <StatCard icon={Briefcase} value={stats.projects} label="Proyectos" />
-            <StatCard icon={Building2} value={stats.institutions} label="Instituciones" />
-            <StatCard icon={CheckCircle2} value={stats.countries} label="Países" />
+            <StatCard icon={Users} value={currentStats.biologists} label="Biólogos" isLoading={isLoading} />
+            <StatCard icon={Briefcase} value={currentStats.projects} label="Proyectos" isLoading={isLoading} />
+            <StatCard icon={Building2} value={currentStats.institutions} label="Instituciones" isLoading={isLoading} />
+            <StatCard icon={CheckCircle2} value={currentStats.countries} label="Países" isLoading={isLoading} />
           </div>
         </div>
       </div>
@@ -74,12 +80,19 @@ interface StatCardProps {
   icon: React.ComponentType<{ className?: string }>;
   value: number;
   label: string;
+  isLoading?: boolean;
 }
 
-const StatCard = ({ icon: Icon, value, label }: StatCardProps) => (
+const StatCard = ({ icon: Icon, value, label, isLoading }: StatCardProps) => (
   <div className="glass-card rounded-xl p-4 text-center">
     <Icon className="w-5 h-5 text-primary mx-auto mb-2" />
-    <div className="text-2xl font-bold text-foreground">{value}+</div>
+    <div className="text-2xl font-bold text-foreground flex items-center justify-center">
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+      ) : (
+        <>{value}+</>
+      )}
+    </div>
     <div className="text-sm text-muted-foreground">{label}</div>
   </div>
 );

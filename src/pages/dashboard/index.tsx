@@ -1,38 +1,44 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Eye, CheckCircle, Clock, UserCheck } from "lucide-react";
+import { FileText, Eye, CheckCircle, Clock, UserCheck, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageTransition from "@/components/layout/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBiologist } from "@/hooks/useBiologists";
 import { useMyApplications } from "@/hooks/useProjectApplications";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useBiologistStats } from "@/hooks/useBiologistStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
 export default function DashboardOverview() {
     const { user } = useAuth();
     const { data: profile, isLoading: isProfileLoading } = useBiologist(user?.id || "");
     const { data: applications, isLoading: isAppsLoading } = useMyApplications();
+    const { data: statsData, isLoading: isStatsLoading } = useBiologistStats(user?.id);
+    const { data: notifications, isLoading: isNotifsLoading } = useNotifications();
 
-    const isLoading = isProfileLoading || isAppsLoading;
+    const isLoading = isProfileLoading || isAppsLoading || isStatsLoading || isNotifsLoading;
 
     // Derived stats
     const stats = [
         {
             title: "Aplicaciones Enviadas",
-            value: applications?.length || 0,
+            value: statsData?.totalSubmitted || 0,
             icon: FileText,
             color: "text-blue-500",
             change: "Total histórico",
         },
         {
             title: "Vistas del Perfil",
-            value: "0", // Simulated/Future feat
+            value: "0",
             icon: Eye,
             color: "text-purple-500",
             change: "Métrica pronto",
         },
         {
             title: "Proyectos Asignados",
-            value: applications?.filter(a => a.status === 'accepted').length || 0,
+            value: statsData?.accepted || 0,
             icon: CheckCircle,
             color: "text-green-500",
             change: "Confirmados",
@@ -127,11 +133,12 @@ export default function DashboardOverview() {
                                                     Aplicado: {new Date(app.applied_at).toLocaleDateString()}
                                                 </p>
                                             </div>
-                                            <div className={`text-xs font-medium px-2 py-1 rounded ${app.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
-                                                app.status === 'Aceptado' ? 'bg-green-100 text-green-700' :
-                                                    'bg-red-100 text-red-700'
+                                            <div className={`text-xs font-medium px-2 py-1 rounded capitalize ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                    app.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                                                        'bg-red-100 text-red-700'
                                                 }`}>
-                                                {app.status}
+                                                {app.status === 'pending' ? 'Pendiente' :
+                                                    app.status === 'accepted' ? 'Aceptado' : 'Rechazado'}
                                             </div>
                                         </div>
                                     ))
@@ -151,21 +158,21 @@ export default function DashboardOverview() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-6">
-                                {applications && applications.length > 0 ? (
-                                    applications.slice(0, 3).map((app: any) => (
-                                        <div key={app.id} className="flex gap-4">
-                                            <div className="mt-1 bg-muted p-2 rounded-full h-8 w-8 flex items-center justify-center">
-                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                {notifications && notifications.length > 0 ? (
+                                    notifications.slice(0, 5).map((notif: any) => (
+                                        <div key={notif.id} className="flex gap-4 border-b last:border-0 pb-4 last:pb-0">
+                                            <div className="mt-1 bg-muted p-2 rounded-full h-8 w-8 flex items-center justify-center shrink-0">
+                                                <Bell className="h-4 w-4 text-muted-foreground" />
                                             </div>
-                                            <div className="space-y-1">
-                                                <p className="text-sm font-medium leading-none">
-                                                    Aplicación enviada
+                                            <div className="space-y-1 flex-1 min-w-0">
+                                                <p className="text-sm font-medium leading-none truncate">
+                                                    {notif.title}
                                                 </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Para el proyecto: {app.projects?.title}
+                                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                                    {notif.message}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground pt-1">
-                                                    {new Date(app.applied_at).toLocaleDateString()}
+                                                <p className="text-[10px] text-muted-foreground pt-1">
+                                                    {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: es })}
                                                 </p>
                                             </div>
                                         </div>

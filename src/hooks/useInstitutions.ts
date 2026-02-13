@@ -8,7 +8,7 @@ export const useInstitutions = () => {
             const { data, error } = await supabase
                 .from("institutions")
                 .select("*")
-                .order("name");
+                .order("name", { ascending: true });
 
             if (error) {
                 throw error;

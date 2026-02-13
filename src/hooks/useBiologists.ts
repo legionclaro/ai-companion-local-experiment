@@ -9,14 +9,22 @@ export const useBiologists = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("biologist_profiles")
-        .select("*")
+        .select(`
+          *,
+          institutions (
+            name
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      return data as Biologist[];
+      return (data as any[]).map(row => ({
+        ...row,
+        institution: row.institutions?.name
+      })) as Biologist[];
     },
   });
 };
@@ -51,7 +59,12 @@ export const useBiologist = (id: string) => {
 
       const { data, error } = await supabase
         .from("biologist_profiles")
-        .select("*")
+        .select(`
+          *,
+          institutions (
+            name
+          )
+        `)
         .eq("id", id)
         .single();
 
@@ -59,7 +72,11 @@ export const useBiologist = (id: string) => {
         throw error;
       }
 
-      return data;
+      const row = data as any;
+      return {
+        ...row,
+        institution: row.institutions?.name
+      };
     },
     enabled: !!id,
   });

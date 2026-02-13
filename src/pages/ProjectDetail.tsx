@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
     Calendar,
@@ -9,7 +10,8 @@ import {
     Briefcase,
     Globe,
     FileText,
-    CheckCircle2
+    CheckCircle2,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,6 +22,7 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -28,48 +31,42 @@ import PageTransition from "@/components/layout/PageTransition";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useProject } from "@/hooks/useProjects";
+import { useApplyToProject } from "@/hooks/useProjectApplications";
 import { Skeleton } from "@/components/ui/skeleton";
 import SEO from "@/components/common/SEO";
+import { toast } from "sonner";
 
 export default function ProjectDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: project, isLoading } = useProject(id || "") as { data: any, isLoading: boolean };
+    const applyToProject = useApplyToProject();
+
+    const [coverLetter, setCoverLetter] = useState("");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const handleApply = async () => {
+        if (!id) return;
+
+        try {
+            await applyToProject.mutateAsync({
+                projectId: id,
+                coverLetter: coverLetter
+            });
+            toast.success("¡Aplicación enviada con éxito!");
+            setIsDialogOpen(false);
+            setCoverLetter("");
+        } catch (error: any) {
+            toast.error("Error al enviar la aplicación: " + error.message);
+        }
+    };
 
     if (!isLoading && !project) {
-        return (
-            <div className="min-h-screen flex flex-col bg-background pt-16">
-                <Navbar />
-                <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold mb-4 text-foreground">Proyecto no encontrado</h2>
-                        <Button onClick={() => navigate("/projects")}>Volver al banco de proyectos</Button>
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
+        // ... rest of component
     }
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col pt-16">
-                <Navbar />
-                <div className="container mx-auto px-4 py-12 space-y-12 flex-grow">
-                    <Skeleton className="h-10 w-48" />
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div className="lg:col-span-2 space-y-8">
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-[300px] w-full" />
-                        </div>
-                        <div className="lg:col-span-1 space-y-6">
-                            <Skeleton className="h-[400px] w-full" />
-                        </div>
-                    </div>
-                </div>
-                <Footer />
-            </div>
-        );
+        // ... rest of component
     }
 
     return (
@@ -152,7 +149,7 @@ export default function ProjectDetail() {
                                     </div>
                                 </div>
 
-                                <Dialog>
+                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button className="w-full text-lg h-14 shadow-md hover:shadow-lg transition-all" size="lg">
                                             Aplicar al Proyecto
@@ -172,6 +169,8 @@ export default function ProjectDetail() {
                                                     id="message"
                                                     placeholder="Describe tu experiencia relevante..."
                                                     className="h-32"
+                                                    value={coverLetter}
+                                                    onChange={(e) => setCoverLetter(e.target.value)}
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
@@ -179,9 +178,23 @@ export default function ProjectDetail() {
                                                 <span className="text-sm">Se enviará tu perfil verificado automáticamente.</span>
                                             </div>
                                         </div>
-                                        <Button type="submit" className="w-full" onClick={() => alert("Aplicación enviada con éxito (Supabase Demo)")}>
-                                            Confirmar Aplicación
-                                        </Button>
+                                        <DialogFooter>
+                                            <Button
+                                                type="submit"
+                                                className="w-full"
+                                                onClick={handleApply}
+                                                disabled={applyToProject.isPending || !coverLetter.trim()}
+                                            >
+                                                {applyToProject.isPending ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        Enviando...
+                                                    </>
+                                                ) : (
+                                                    "Confirmar Aplicación"
+                                                )}
+                                            </Button>
+                                        </DialogFooter>
                                     </DialogContent>
                                 </Dialog>
 

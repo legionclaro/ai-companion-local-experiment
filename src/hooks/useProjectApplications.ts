@@ -5,9 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 type ApplicationStatus = Database["public"]["Enums"]["application_status"];
 
-export const useProjectApplications = (projectId?: string) => {
+export const useProjectApplications = (projectId?: string, institutionId?: string) => {
     return useQuery({
-        queryKey: ["project_applications", projectId],
+        queryKey: ["project_applications", projectId, institutionId],
         queryFn: async () => {
             let query = supabase
                 .from("project_applications")
@@ -18,12 +18,20 @@ export const useProjectApplications = (projectId?: string) => {
             photo,
             title,
             experience_level
+          ),
+          projects!inner (
+            title,
+            institution_id
           )
         `)
                 .order("created_at", { ascending: false });
 
             if (projectId) {
                 query = query.eq("project_id", projectId);
+            }
+
+            if (institutionId) {
+                query = query.eq("projects.institution_id", institutionId);
             }
 
             const { data, error } = await query;
@@ -34,7 +42,7 @@ export const useProjectApplications = (projectId?: string) => {
 
             return data;
         },
-        enabled: !!projectId,
+        enabled: !!projectId || !!institutionId,
     });
 };
 

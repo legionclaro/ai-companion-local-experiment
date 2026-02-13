@@ -23,6 +23,7 @@ import Messages from "./pages/dashboard/Messages";
 import DashboardNotifications from "./pages/dashboard/Notifications";
 import Billing from "./pages/dashboard/Billing";
 import VerificationWizard from "./pages/dashboard/VerificationWizard";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 import InstitutionLayout from "./components/layout/InstitutionLayout";
 import InstitutionDashboardOverview from "./pages/institution/Dashboard";
@@ -95,7 +96,7 @@ const AppContent = () => {
         <Route path="/test-hooks" element={<TestHooks />} />
 
         {/* Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['user']}><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<DashboardOverview />} />
           <Route path="messages" element={<Messages />} />
           <Route path="notifications" element={<DashboardNotifications />} />
@@ -106,7 +107,7 @@ const AppContent = () => {
         </Route>
 
         {/* Institution Routes */}
-        <Route path="/institution" element={<InstitutionLayout />}>
+        <Route path="/institution" element={<ProtectedRoute allowedRoles={['user', 'admin']}><InstitutionLayout /></ProtectedRoute>}>
           <Route index element={<InstitutionDashboardOverview />} />
           <Route path="projects" element={<InstitutionProjects />} />
           <Route path="projects/new" element={<NewProject />} />
@@ -117,7 +118,7 @@ const AppContent = () => {
         </Route>
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="verifications" element={<AdminVerifications />} />
           <Route path="projects" element={<AdminProjects />} />

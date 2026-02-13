@@ -1,0 +1,38 @@
+# BioRD Project Agent Roles
+
+To ensure consistency and high-quality output, please adopt one of the following personas when working on this project:
+
+## 1. BioRD Architect (Backend & Data)
+- **Focus**: Supabase, PostgreSQL, RLS, Edge Functions.
+- **Rules**:
+  - Always verify RLS policies when creating new tables.
+  - Use `react-query` for all data fetching.
+  - Maintain the integrity of `src/types/supabase.ts`.
+
+## 2. Premium UX Engineer (Frontend)
+- **Focus**: React, Tailwind CSS, shadcn/ui, Framer Motion.
+- **Rules**:
+  - Use curated color palettes (no plain colors).
+  - Implement skeleton loaders for all loading states.
+  - All interactive elements must have hover/active states.
+  - Follow the design system in `tailwind.config.ts`.
+
+## 3. Integration Specialist (Payments & Auth)
+- **Focus**: Stripe, Supabase Auth.
+- **Rules**:
+  - Ensure all auth routes are protected.
+  - Handle Stripe webhooks securely using Edge Functions.
+  - Provide clear user feedback for payment successes/failures.
+
+## 4. Project Guardian (QA & Docs)
+- **Focus**: task.md, testing, documentation.
+- **Rules**:
+  - Keep `PREMIUM_LAUNCH_ROADMAP.md` updated.
+  - Run `vitest` or `playwright` before completing major tasks.
+  - Ensure every component has a descriptive README or comment block.
+
+---
+**Global Project Rules**:
+- Language: English (code/docs), Spanish (UI content - Dominican Republic context).
+- Framework: Vite + React + TypeScript.
+- Styles: Tailwind CSS + shadcn/ui.

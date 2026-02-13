@@ -1,5 +1,14 @@
 -- SCHEMA DE BASE DE DATOS PARA BIORD SAAS STANDARDIZED
 
+-- 0. ENUMS
+CREATE TYPE public.app_role AS ENUM ('admin', 'moderator', 'user');
+CREATE TYPE public.application_status AS ENUM ('pending', 'accepted', 'rejected', 'withdrawn');
+CREATE TYPE public.project_status AS ENUM ('abierto', 'en_curso', 'cerrado');
+CREATE TYPE public.project_type AS ENUM ('conservación', 'impacto_ambiental', 'inventario', 'académico', 'ong');
+CREATE TYPE public.project_modality AS ENUM ('campo', 'remoto', 'híbrido');
+CREATE TYPE public.specialty AS ENUM ('botánica', 'zoología', 'herpetología', 'ornitología', 'entomología', 'ecología', 'conservación', 'GIS', 'taxonomía', 'biología marina');
+CREATE TYPE public.biologist_role AS ENUM ('consultoría', 'campo', 'curaduría', 'investigación');
+
 -- 1. TABLA DE PERFILES (BIÓLOGOS) - Standardized name
 CREATE TABLE IF NOT EXISTS public.biologist_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -13,6 +22,7 @@ CREATE TABLE IF NOT EXISTS public.biologist_profiles (
   availability TEXT,
   verified BOOLEAN DEFAULT FALSE,
   is_premium BOOLEAN DEFAULT FALSE,
+  institution_id UUID,
   specialties TEXT[] DEFAULT '{}',
   roles TEXT[] DEFAULT '{}',
   languages TEXT[] DEFAULT '{}',
@@ -41,7 +51,9 @@ CREATE TABLE IF NOT EXISTS public.institutions (
   description TEXT,
   website TEXT,
   logo TEXT,
+  logo_url TEXT,
   created_by UUID REFERENCES auth.users(id),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -59,6 +71,15 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
   date DATE DEFAULT CURRENT_DATE,
   seo_score INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 3.1 TABLA DE ROLES DE USUARIO
+CREATE TABLE IF NOT EXISTS public.user_roles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  role public.app_role DEFAULT 'user',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(user_id, role)
 );
 
 -- 4. SEGURIDAD (RLS)
@@ -143,12 +164,16 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 6. TABLA DE APLICACIONES A PROYECTOS
+-- 6. TABLA DE APLICACIONES A PROYECTOS
 CREATE TABLE IF NOT EXISTS public.project_applications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
   biologist_id UUID REFERENCES public.biologist_profiles(id) ON DELETE CASCADE,
-  status TEXT DEFAULT 'Pendiente',
-  applied_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  status public.application_status DEFAULT 'pending',
+  cover_letter TEXT,
+  decision_notes TEXT,
+  applied_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- 7. TABLA DE NOTIFICACIONES
@@ -159,8 +184,76 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   message TEXT NOT NULL,
   type TEXT DEFAULT 'info',
   read BOOLEAN DEFAULT FALSE,
+  link TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- 8. TRIGGERS PARA NOTIFICACIONES AUTOMÁTICAS
+
+-- 8.1 Notificar a la institución sobre nueva aplicación
+CREATE OR REPLACE FUNCTION public.handle_new_application_notification()
+RETURNS TRIGGER AS $$
+DECLARE
+  institution_owner_id UUID;
+  project_title TEXT;
+  biologist_name TEXT;
+BEGIN
+  -- Obtener el dueño de la institución y el título del proyecto
+  SELECT i.created_by, p.title INTO institution_owner_id, project_title
+  FROM public.projects p
+  JOIN public.institutions i ON p.institution_id = i.id
+  WHERE p.id = NEW.project_id;
+
+  -- Obtener nombre del biólogo
+  SELECT name INTO biologist_name
+  FROM public.biologist_profiles
+  WHERE id = NEW.biologist_id;
+
+  -- Crear notificación
+  INSERT INTO public.notifications (user_id, title, message, type, link)
+  VALUES (
+    institution_owner_id,
+    'Nueva aplicación recibida',
+    biologist_name || ' ha aplicado al proyecto "' || project_title || '"',
+    'application',
+    '/institution/applications'
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_project_application_created
+  AFTER INSERT ON public.project_applications
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_application_notification();
+
+-- 8.2 Notificar al biólogo sobre actualización de estado
+CREATE OR REPLACE FUNCTION public.handle_application_status_update_notification()
+RETURNS TRIGGER AS $$
+DECLARE
+  project_title TEXT;
+BEGIN
+  IF (OLD.status IS DISTINCT FROM NEW.status) THEN
+    SELECT title INTO project_title FROM public.projects WHERE id = NEW.project_id;
+
+    INSERT INTO public.notifications (user_id, title, message, type, link)
+    VALUES (
+      NEW.biologist_id,
+      'Actualización de postulación',
+      'Tu postulación para "' || project_title || '" ha sido marcada como ' || NEW.status,
+      'application',
+      '/dashboard/applications'
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_project_application_status_updated
+  AFTER UPDATE OF status ON public.project_applications
+  FOR EACH ROW EXECUTE FUNCTION public.handle_application_status_update_notification();
 
 ALTER TABLE public.project_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;

@@ -4,10 +4,11 @@ import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: string[];
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { user, role, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,6 +21,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    // Redirect to their appropriate dashboard if they have a different role
+    if (role === 'admin') return <Navigate to="/admin" replace />;
+    if (role === 'user') return <Navigate to="/dashboard" replace />;
+    // Default redirect to home if role is unknown or not authorized
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

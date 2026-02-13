@@ -8,7 +8,13 @@ export const useProjects = () => {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("projects")
-                .select("*")
+                .select(`
+                    *,
+                    institutions (
+                        name,
+                        logo_url
+                    )
+                `)
                 .order("created_at", { ascending: false });
 
             if (error) {
@@ -19,7 +25,8 @@ export const useProjects = () => {
                 id: row.id,
                 title: row.title,
                 description: row.description,
-                institution: row.institution_id, // Use ID for now or map to name if possible
+                institution: row.institutions?.name || "Institución desconocida",
+                institutionLogo: row.institutions?.logo_url,
                 category: row.category,
                 status: row.status,
                 vacancies: row.vacancies,
@@ -42,7 +49,13 @@ export const useProject = (id: string) => {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("projects")
-                .select("*")
+                .select(`
+                    *,
+                    institutions (
+                        name,
+                        logo_url
+                    )
+                `)
                 .eq("id", id)
                 .single();
 
@@ -55,7 +68,8 @@ export const useProject = (id: string) => {
                 id: row.id,
                 title: row.title,
                 description: row.description,
-                institution: row.institution_id, // Use ID for now or map to name if possible
+                institution: row.institutions?.name || "Institución desconocida",
+                institutionLogo: row.institutions?.logo_url,
                 category: row.category,
                 status: row.status,
                 vacancies: row.vacancies,
